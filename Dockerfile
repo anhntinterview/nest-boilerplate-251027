@@ -6,16 +6,22 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
+# Install pnpm
+RUN npm install -g pnpm
+
 COPY package.json package-lock.json* ./
-RUN npm ci
+
+# Install dependencies. Corresponding with: RUN npm ci
+RUN pnpm install --frozen-lockfile
 
 # Build stage
 FROM base AS builder
 WORKDIR /app
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-RUN npm run build
+RUN pnpm run build
 RUN echo "===== LIST build =====" && ls -al dist
 
 # Runner stage (production)
