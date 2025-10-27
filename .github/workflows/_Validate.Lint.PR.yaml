@@ -1,4 +1,4 @@
-name: _Validate.Lint.PR
+name: Validate.Lint.PR
 
 on:
   workflow_call:

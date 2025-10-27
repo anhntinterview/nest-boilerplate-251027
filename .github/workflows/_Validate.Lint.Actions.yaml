@@ -1,12 +1,8 @@
-name: _Validate.Lint.Actions
+name: Validate.Lint.Actions
 
 on:
   workflow_call:
-  pull_request:
-    branches:
-      - "master"
-    paths:
-      - ".github/**"
+
 jobs:
   validate:
     name: Validate.Lint.Actions
