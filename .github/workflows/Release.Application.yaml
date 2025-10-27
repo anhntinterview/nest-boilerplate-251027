@@ -109,7 +109,7 @@ jobs:
     steps:
       - name: Dispatch deployment event
         run: |
-          echo "🚀 Triggering deployment event... "
+          echo "🚀 Triggering deployment event..."
           curl -X POST \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ secrets.NESTJS_RELEASE_PLEASE_TOKEN }}" \
