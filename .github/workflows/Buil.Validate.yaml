@@ -3,14 +3,14 @@ name: Build.Validate
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [master]
     paths:
       - "src/**"
       - "tests/**"
       - "package-lock.json"
       - "package.json"
   pull_request:
-    branches: [main]
+    branches: [master]
     paths:
       - "src/**"
       - "tests/**"
