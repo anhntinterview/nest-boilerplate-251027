@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/anhntinterview/nest-boilerplate-251027/compare/v1.1.0...v1.1.1) (2025-10-27)
+
+
+### Bug Fixes
+
+* **ci:** we need release please ([844a5cb](https://github.com/anhntinterview/nest-boilerplate-251027/commit/844a5cb09ac4b6157e4b52de584f200c247f5731))
+
 ## [1.1.0](https://github.com/anhntinterview/nest-boilerplate-251027/compare/v1.0.0...v1.1.0) (2025-10-27)
 
 
