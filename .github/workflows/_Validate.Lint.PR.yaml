@@ -1,12 +1,8 @@
-name: _Validate.Lint.PR
+name: Validate.Lint.PR
 
 on:
   workflow_call:
-  pull_request:
-    types:
-      - opened
-      - edited
-      - reopened
+
 defaults:
   run:
     shell: bash

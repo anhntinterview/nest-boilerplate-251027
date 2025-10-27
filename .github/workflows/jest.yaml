@@ -1,4 +1,4 @@
-name: Jest Unit Tests
+name: Jest.Unit.Tests
 
 on:
   workflow_call:
@@ -9,6 +9,7 @@ concurrency:
 
 jobs:
   tests:
+    name: Tests
     strategy:
       fail-fast: false
       max-parallel: 4
