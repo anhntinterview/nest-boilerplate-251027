@@ -9,10 +9,10 @@ on:
         description: Set manual version of docker tag
         type: string
 
-  # ✅ Only trigger on merge to main (after PR approval)
+  # ✅ Only trigger on merge to master (after PR approval)
   push:
     branches:
-      - main
+      - master
     # # Optional: only trigger if relevant files changed
     # paths:
     #   - "Release.Application.yaml"

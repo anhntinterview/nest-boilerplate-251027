@@ -8,18 +8,43 @@
   "packageRules": [
     {
       "matchManagers": ["npm"],
-      "groupName": "Next.js and React updates",
-      "matchPackagePatterns": ["^next", "^react", "^react-dom"],
+      "groupName": "NestJS core updates",
+      "matchPackagePatterns": ["^@nestjs/", "^reflect-metadata", "^rxjs"],
       "automerge": true,
       "automergeType": "branch",
       "automergeStrategy": "merge",
       "targetBranch": "renovate",
-      "labels": ["dependencies", "nextjs", "react"]
+      "labels": ["dependencies", "nestjs"]
     },
     {
       "matchManagers": ["npm"],
-      "matchPackagePatterns": ["^eslint", "^typescript"],
-      "groupName": "Dev tools"
+      "groupName": "Dev tools and build system",
+      "matchPackagePatterns": [
+        "^typescript",
+        "^eslint",
+        "^prettier",
+        "^ts-node",
+        "^nodemon"
+      ],
+      "labels": ["dependencies", "devtools"]
+    },
+    {
+      "matchManagers": ["npm"],
+      "groupName": "Testing libraries",
+      "matchPackagePatterns": ["^jest", "^@types/jest", "^supertest"],
+      "labels": ["dependencies", "testing"]
+    },
+    {
+      "matchManagers": ["npm"],
+      "groupName": "Database and ORM packages",
+      "matchPackagePatterns": [
+        "^@prisma/",
+        "^typeorm",
+        "^pg",
+        "^mysql",
+        "^mongoose"
+      ],
+      "labels": ["dependencies", "database"]
     }
   ],
   "prHourlyLimit": 5,
