@@ -26,7 +26,7 @@ permissions:
 jobs:
   node-build:
     name: Node.Build
-    uses: ./.github/workflows/Node.Build.Publish.yaml
+    uses: anhntinterview/nest-boilerplate-251027/.github/workflows/Node.Build.Publish.yaml@ci/setup_workflows
     with:
       node_version: 20
       project_root_directory: "."
@@ -38,7 +38,7 @@ jobs:
   build-docker:
     name: Docker.Build
     needs: [node-build]
-    uses: ./.github/workflows/Docker.Build.Publish.yaml
+    uses: anhntinterview/nest-boilerplate-251027/.github/workflows/Docker.Build.Publish.yaml@ci/setup_workflows
     with:
       dockerfile_path: ./Dockerfile
       image_name: nest-boilerplate-251027

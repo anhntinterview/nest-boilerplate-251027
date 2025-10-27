@@ -29,20 +29,20 @@ jobs:
   # 1. Lint GitHub Actions / YAML
   lint-actions:
     name: Lint.Actions
-    uses: ./.github/workflows/_Validate.Lint.Actions.yaml
+    uses: anhntinterview/nest-boilerplate-251027/.github/workflows/_Validate.Lint.Actions.yaml@ci/setup_workflows
 
   # 2. Validate PR Title (Conventional Commit)
   lint-pr:
     name: Lint.PR
     if: ${{ github.event_name == 'pull_request' }}
-    uses: ./.github/workflows/_Validate.Lint.PR.yaml
+    uses: anhntinterview/nest-boilerplate-251027/.github/workflows/_Validate.Lint.PR.yaml@ci/setup_workflows
 
   # 3. Node Build + Sonar Scan + Docker Build Validation
   node-build:
     name: Node.Build
     needs: [lint-actions, lint-pr]
     if: ${{ (github.event_name != 'pull_request' || needs.lint-pr.result == 'success') && needs.lint-actions.result == 'success' }}
-    uses: ./.github/workflows/Node.Build.Validate.yaml
+    uses: anhntinterview/nest-boilerplate-251027/.github/workflows/Node.Build.Validate.yaml@ci/setup_workflows
     with:
       node_version: 20
       project_root_directory: "."
@@ -54,4 +54,4 @@ jobs:
     name: Jest.Unit.Test
     needs: [node-build]
     if: ${{needs.node-build.result == 'success'}}
-    uses: ./.github/workflows/jest.yaml
+    uses: anhntinterview/nest-boilerplate-251027/.github/workflows/jest.yaml@ci/setup_workflows
