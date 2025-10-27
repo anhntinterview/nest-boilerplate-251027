@@ -1,0 +1,60 @@
+name: _Validate.Lint.Actions
+
+on:
+  workflow_call:
+  pull_request:
+    branches:
+      - "main"
+    paths:
+      - ".github/**"
+jobs:
+  validate:
+    name: Validate.Lint.Actions
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.ref != 'release-please--branches--main--components--platform-reusable-workflows'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        id: setup-node
+        with:
+          node-version: 20
+      - name: Download actionlint
+        id: get_actionlint
+        run: |
+          bash .github/workflows/download-actionlint.bash
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+      - name: Install yaml-lint
+        run: |
+          pip install --upgrade pip
+          pip install --user yamllint
+
+      - name: Yaml-lint workflows & actions
+        if: ${{ always() }}
+        run: |
+          yamllint .github
+
+      - name: Run actionlint
+        if: ${{ always() }}
+        id: lint
+        run: |
+          "${{ steps.get_actionlint.outputs.executable }}" -color \
+          -ignore 'SC2129' \
+          -ignore 'SC2005' \
+          -ignore 'SC2046' \
+          -ignore 'SC2155'
+      - name: Generate output
+        if: success()
+        run: |
+          echo "Workflow validation was successful!"  >>  "$GITHUB_STEP_SUMMARY"
+
+      - name: Generate output
+        if: ${{failure() }}
+        run: |
+          echo "Workflow validation failure!!!"  >> "$GITHUB_STEP_SUMMARY"

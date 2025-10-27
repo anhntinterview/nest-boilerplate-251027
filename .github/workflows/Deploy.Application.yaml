@@ -1,0 +1,92 @@
+name: Deploy.Application
+
+on:
+  repository_dispatch:
+    types: [artifacts-published]
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    name: Deploy to Server
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ✅ Use official SSH action (safer and cleaner than manual setup)
+      - name: Setup SSH connection
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
+
+      # ✅ Add known hosts (avoids "host authenticity" prompt)
+      - name: Add known hosts
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      # ✅ Test SSH connection before proceeding
+      - name: Test SSH connection
+        run: |
+          echo "🔍 Testing SSH connection to ${{ secrets.SERVER_HOST }}..."
+          ssh -o StrictHostKeyChecking=yes ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "echo '✅ SSH connection successful.'"
+
+      # ✅ Pull the new Docker image on remote server
+      - name: Pull latest Docker image
+        run: |
+          REF="${{ github.event.client_payload.ref }}"
+          TAG="${REF#v}"
+          echo "🔄 Pulling Docker image for version: $TAG"
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} bash -s "$TAG" << 'EOF'
+            TAG="$1"
+            echo '${{ secrets.GHCR_TOKEN }}' | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin &&
+            docker pull ghcr.io/${{ github.repository_owner }}/nest-boilerplate-251027:$TAG
+          EOF
+
+      # ✅ Deploy container (stop old, start new)
+      - name: Deploy container
+        run: |
+          REF="${{ github.event.client_payload.ref }}"
+          TAG="${REF#v}"
+          echo "🚀 Deploying version: $TAG"
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} bash -s "$TAG" << 'EOF'
+            TAG="$1"
+            echo '${{ secrets.NESTJS_RELEASE_PLEASE_TOKEN }}' | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin &&
+            set -e
+            echo "🛑 Stopping old container (if exists)..."
+            docker stop next-boilerplate-frontend 2>/dev/null || true
+            docker rm next-boilerplate-frontend 2>/dev/null || true
+
+            echo "🚢 Starting new container..."
+            docker run -d \
+              --name next-boilerplate-frontend \
+              --restart=always \
+              -p 3000:3000 \
+              ghcr.io/${{ github.repository_owner }}/nest-boilerplate-251027:$TAG
+
+            echo "🧹 Cleaning up old images..."
+            docker image prune -f
+          EOF
+
+      # ✅ Verify the new container is running and healthy
+      - name: Verify deployment
+        run: |
+          echo "✅ Verifying deployment..."
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
+            docker ps --filter name=next-boilerplate-frontend --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}'
+          "
+      - name: Setup Nginx Reverse Proxy (if needed)
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.NESTJS_RELEASE_PLEASE_TOKEN }}
+          repository: ${{ github.repository }}
+          event-type: setup-nginx
+          client-payload: |
+            {
+              "ref": "${{ github.event.client_payload.ref }}"
+            }

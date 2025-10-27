@@ -1,0 +1,58 @@
+name: _Validate.Lint.PR
+
+on:
+  workflow_call:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - reopened
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  validate-pr-title:
+    name: Validate.PR.Title
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && !startsWith(github.head_ref, 'release-please--')
+
+    steps:
+      - name: Validate PR title format
+        id: validate
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          echo "🧪 Validating PR title format..."
+
+          #Extract PR title
+          echo "PR Title: \"$TITLE\""
+
+          #Allowed types
+          ALLOWED_TYPES="feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert|deps"
+
+          #Regex for Conventional Commit style: type(optional-scope): message
+          REGEX="^(${ALLOWED_TYPES})(\([a-zA-Z0-9_-]+\))?: .+"
+
+          if [[ "$TITLE" =~ $REGEX ]]; then
+            echo "✅ PR title format is valid."
+          else
+            echo "❌ Invalid PR title format."
+            echo "Your title must follow Conventional Commit style."
+            echo ""
+            echo "Examples of valid titles:"
+            echo "  feat: add login page"
+            echo "  fix(auth): handle token refresh"
+            echo "  docs: update README"
+            echo ""
+            echo "Allowed types: ${ALLOWED_TYPES}"
+            exit 1
+          fi
+
+      - name: Report success
+        if: success()
+        run: echo "🎉 PR title validation passed!"
+
+      - name: Report failure
+        if: failure()
+        run: echo "🚨 PR title validation failed! Please fix your PR title."

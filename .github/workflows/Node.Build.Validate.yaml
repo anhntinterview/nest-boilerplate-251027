@@ -1,0 +1,47 @@
+name: Node.Build.Validate
+on:
+  workflow_call:
+    inputs:
+      node_version:
+        required: true
+        type: string
+      project_root_directory:
+        required: true
+        type: string
+      npmscripts:
+        required: true
+        type: string
+      run_sonar_scan:
+        required: true
+        type: boolean
+    secrets:
+      SONAR_TOKEN:
+        required: false
+      SONAR_HOST_URL:
+        required: false
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+jobs:
+  node-build:
+    name: Node.Build
+    uses: anhntinterview/nest-boilerplate-251027/.github/workflows/Node.Build.Publish.yaml@ci/setup-workflows
+    with:
+      node_version: 20
+      project_root_directory: "."
+      npmscripts: lint,typecheck,format:check
+      run_sonar_scan: true
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+  build-docker:
+    name: Docker.Build
+    needs: [node-build]
+    uses: anhntinterview/nest-boilerplate-251027/.github/workflows/Docker.Build.Publish.yaml@ci/setup-workflows
+    with:
+      dockerfile_path: ./Dockerfile
+      image_name: nest-boilerplate-251027
+      image_tag: v0.1.0
+      run_docker_publish: true
+      image_subdirectory: .

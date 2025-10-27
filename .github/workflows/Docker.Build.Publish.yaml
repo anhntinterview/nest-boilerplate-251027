@@ -1,0 +1,66 @@
+name: Docker.Build.Publish
+
+on:
+  workflow_call:
+    inputs:
+      dockerfile_path:
+        required: false
+        default: ./Dockerfile
+        type: string
+      image_name:
+        required: true
+        type: string
+      image_tag:
+        required: false
+        default: latest
+        type: string
+      image_subdirectory:
+        required: false
+        default: "."
+        type: string
+      run_docker_publish:
+        required: false
+        default: true
+        type: boolean
+jobs:
+  docker-build-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        if: ${{inputs.run_docker_publish}}
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{github.actor}}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ inputs.image_subdirectory }}
+          file: ${{ inputs.dockerfile_path }}
+          push: ${{ inputs.run_docker_publish }}
+          tags: ghcr.io/${{ github.repository_owner }}/${{ inputs.image_name }}:${{ inputs.image_tag }}
+
+      # - name: Build Docker image
+      #   run: |
+      #       docker build \
+      #           -f ${{inputs.dockerfile_path}} \
+      #           -t ghcr.io/${{github.repository_owner}}/${{inputs.image_name}}:${{inputs.image_tag}} \
+      #           ${{inputs.image_subdirectory}}
+
+      # - name: Push Docker image to GHCR
+      #   if: ${{inputs.run_docker_publish == true}}
+      #   run: |
+      #       docker push ghcr.io/${{github.repository_owner}}/${{inputs.image_name}}:${{inputs.image_tag}}

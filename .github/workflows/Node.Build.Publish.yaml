@@ -1,0 +1,91 @@
+name: Node.Build.Publish
+
+on:
+  workflow_call:
+    inputs:
+      node_version:
+        required: false
+        default: 20
+        type: number
+      project_root_directory:
+        required: false
+        default: "."
+        type: string
+      npmscripts:
+        required: false
+        default: lint,typecheck,format:check
+        type: string
+      run_sonar_scan:
+        required: false
+        default: true
+        type: boolean
+      publish_to_github_packages:
+        required: false
+        default: false
+        type: boolean
+    secrets:
+      SONAR_TOKEN:
+        required: false
+      SONAR_HOST_URL:
+        required: false
+jobs:
+  node_build:
+    runs-on: [self-hosted, Linux, X64]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Required for full SonarQube analysis history
+      # ✅ Cache npm + Playwright binaries to speed up install
+      - name: Cache npm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{inputs.node_version}}
+          cache: "npm"
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm script
+        shell: bash
+        env:
+          NPM_SCRIPTS: ${{ inputs.npmscripts }}
+        run: |
+          for script in $(echo "$NPM_SCRIPTS" | tr ',' ' '); do
+            echo "🟢 Running npm run $script"
+            npm run "$script"
+          done
+        working-directory: ${{inputs.project_root_directory}}
+
+      - name: Build project
+        run: npm run build:ci
+        working-directory: ${{inputs.project_root_directory}}
+
+      - name: Upload build artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: ${{inputs.project_root_directory}}/**/build
+
+      - name: SonarQube Scan
+        if: ${{inputs.run_sonar_scan == true}}
+        uses: SonarSource/sonarqube-scan-action@v6
+        with:
+          projectBaseDir: ${{inputs.project_root_directory}}
+
+      - name: Publish to Github Packages
+        if: ${{inputs.publish_to_github_packages == true}}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "//npm.pkg.github.com/:_authToken=$NODE_AUTH_TOKEN" > ~/.npmrc
+          npm publish
+        working-directory: ${{inputs.project_root_directory}}
