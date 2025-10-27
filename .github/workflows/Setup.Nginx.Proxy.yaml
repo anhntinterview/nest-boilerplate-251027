@@ -1,0 +1,219 @@
+name: Setup.Nginx.Proxy
+
+on:
+  workflow_dispatch:
+    inputs:
+      application_name:
+        description: "Application name"
+        required: true
+      env:
+        description: ".env"
+        required: true
+        type: choice
+        options: [dev, stage, prod]
+      region:
+        description: "Region"
+        default: "eu-west-1"
+      version:
+        description: "Version"
+        required: true
+  repository_dispatch:
+    types: [setup-nginx]
+
+jobs:
+  setup-nginx:
+    name: Configure Nginx on Server
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
+
+      - name: Add known hosts
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Configure Nginx Reverse Proxy
+        env:
+          SERVER_PASSWORD: ${{ secrets.SECRET_API_KEY }}
+          DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          APP_PORT: ${{ secrets.APP_PORT }}
+          CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
+        run: |
+          echo "⚙️ Configuring Nginx reverse proxy..."
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} bash -s -- "$SERVER_PASSWORD" "$DOMAIN_NAME" "$SERVER_USER" "$APP_PORT" "$CONTAINER_NAME" <<'EOF'
+          set -e
+
+          SERVER_PASSWORD="$1"
+          DOMAIN="$2"
+          SERVER_USER="$3"
+          APP_PORT="$4"
+          CONTAINER_NAME="$5"
+
+          NGINX_CONF="/etc/nginx/sites-available/$DOMAIN.conf"
+          CERT_PATH="/etc/letsencrypt/live/$DOMAIN"
+
+          echo "🔍 Checking if application container is running..."
+          if ! docker ps --filter name="$CONTAINER_NAME" --filter "status=running" | grep -q "$CONTAINER_NAME"; then
+            echo "❌ Container '\$CONTAINER_NAME' is not running. Aborting Nginx setup."
+            exit 1
+          fi
+          echo "✅ Container '\$CONTAINER_NAME' is running."
+
+          echo "🔍 Checking if Nginx is installed..."
+          if ! command -v nginx &>/dev/null; then
+            echo "📦 Installing Nginx..."
+            if [ -f /etc/debian_version ]; then
+              echo $SERVER_PASSWORD | sudo -S apt update -y
+              echo $SERVER_PASSWORD | sudo -S apt install nginx -y
+            elif [ -f /etc/redhat-release ]; then
+              echo $SERVER_PASSWORD | sudo -S yum install epel-release -y
+              echo $SERVER_PASSWORD | sudo -S yum install nginx -y
+            else
+              echo "❌ Unsupported OS. Please install Nginx manually."
+              exit 1
+            fi
+            echo $SERVER_PASSWORD | sudo -S systemctl enable nginx
+            echo $SERVER_PASSWORD | sudo -S systemctl start nginx
+            echo "✅ Nginx installed."
+          else
+            echo "✅ Nginx already installed."
+          fi
+
+          echo "🔍 Checking Certbot installation..."
+          if ! command -v certbot &>/dev/null; then
+            echo "📦 Installing Certbot..."
+            echo $SERVER_PASSWORD | sudo -S apt update -y
+            echo $SERVER_PASSWORD | sudo -S apt install -y certbot python3-certbot-nginx
+            echo "✅ Certbot installed."
+          else
+            echo "✅ Certbot already installed."
+          fi
+
+          # Check & install htpasswd
+          echo "🧱 Creating Nginx config for \$DOMAIN ..."
+          if ! command -v htpasswd &>/dev/null; then
+            echo "📦 Installing apache2-utils for htpasswd..."
+            echo $SERVER_PASSWORD | sudo -S apt update -y
+            echo $SERVER_PASSWORD | sudo -S apt install -y apache2-utils
+          else
+              echo "✅ htpasswd already installed."
+          fi
+
+          # Create file .htpasswd
+          echo $SERVER_PASSWORD | sudo -S htpasswd -cb /etc/nginx/.htpasswd "$SERVER_USER" "$SERVER_PASSWORD"
+
+          # -----------------------------------------------------
+          # 1. Create temporary HTTP-only config for Certbot
+          # -----------------------------------------------------
+          echo "🧱 Creating temporary HTTP config for \$DOMAIN ..."
+          sudo tee "$NGINX_CONF" > /dev/null <<CONFIG
+          server {
+            listen 80;
+            server_name $DOMAIN;
+
+            location / {
+              proxy_pass http://localhost:$APP_PORT;
+              proxy_http_version 1.1;
+              proxy_set_header Upgrade \$http_upgrade;
+              proxy_set_header Connection 'upgrade';
+              proxy_set_header Host \$host;
+              proxy_cache_bypass \$http_upgrade;
+            }
+          }
+          CONFIG
+
+          echo $SERVER_PASSWORD | sudo -S ln -sf $NGINX_CONF /etc/nginx/sites-enabled/$DOMAIN.conf
+
+          echo "🔄 Testing Nginx configuration..."
+          echo $SERVER_PASSWORD | sudo -S nginx -t
+
+          echo "♻️ Reloading Nginx..."
+          echo $SERVER_PASSWORD | sudo -S systemctl reload nginx
+          echo "✅ Temporary config activated."
+
+          # -----------------------------------------------------
+          # 2. Issue SSL certificate (Certbot)
+          # -----------------------------------------------------
+          echo "🔍 Checking existing SSL certificate for $DOMAIN..."
+          if [ -d "$CERT_PATH" ] && [ -f "$CERT_PATH/fullchain.pem" ]; then
+            echo "✅ SSL certificate already exists at \$CERT_PATH"
+          else
+            echo "📜 Requesting new SSL certificate for $DOMAIN..."
+            echo $SERVER_PASSWORD | sudo -S certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos -m roberthost.vn@gmail.com || {
+              echo "❌ Failed to issue SSL certificate. Check DNS and port 80 accessibility."
+              exit 1
+            }
+            echo "✅ SSL certificate successfully issued for \$DOMAIN"
+          fi
+
+          # -----------------------------------------------------
+          # 3. Replace config with HTTPS reverse proxy
+          # -----------------------------------------------------
+          echo "🧱 Creating final HTTPS config..."
+          sudo tee "$NGINX_CONF" > /dev/null <<CONFIG
+          # Redirect HTTP -> HTTPS
+          server {
+            listen 80;
+            server_name $DOMAIN;
+            return 301 https://\$host\$request_uri;
+          }
+          # HTTPS server
+          server {
+            listen 443 ssl http2;
+            server_name $DOMAIN;
+
+            # Certificate SSL/TLS
+            ssl_certificate /etc/letsencrypt/live/$DOMAIN/fullchain.pem;
+            ssl_certificate_key /etc/letsencrypt/live/$DOMAIN/privkey.pem;
+            include /etc/letsencrypt/options-ssl-nginx.conf;
+            ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+            # Proxy to Application
+            location / {
+              proxy_pass http://localhost:$APP_PORT;
+              proxy_http_version 1.1;
+              proxy_set_header Upgrade \$http_upgrade;
+              proxy_set_header Connection 'upgrade';
+              proxy_set_header Host \$host;
+              proxy_cache_bypass \$http_upgrade;
+
+              auth_basic "Restricted";
+              auth_basic_user_file /etc/nginx/.htpasswd;
+            }
+          }
+          CONFIG
+
+          echo $SERVER_PASSWORD | sudo -S nginx -t
+
+          echo "♻️ Final Nginx reload..."
+          echo $SERVER_PASSWORD | sudo -S systemctl reload nginx
+
+          echo "✅ Nginx has been configured and reloaded successfully."
+          echo "🌐 Access your app at: http://$DOMAIN"
+          EOF
+
+      - name: Verify Nginx Status
+        env:
+          SERVER_PASSWORD: ${{ secrets.SECRET_API_KEY }}
+        run: |
+          echo "🔎 Checking Nginx service status..."
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} bash -s -- "$SERVER_PASSWORD" << 'EOF'
+            set -e
+
+            SERVER_PASSWORD="$1"
+            if ! echo $SERVER_PASSWORD | sudo -S systemctl is-active --quiet nginx; then
+              echo "❌ Nginx service is not active!"
+              exit 1
+            fi
+            echo "✅ Nginx service is active."
+          EOF

@@ -1,0 +1,27 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:base"],
+  "branchPrefix": "renovate/",
+  "labels": ["dependencies"],
+  "dependencyDashboard": true,
+  "rangeStrategy": "replace",
+  "packageRules": [
+    {
+      "matchManagers": ["npm"],
+      "groupName": "Next.js and React updates",
+      "matchPackagePatterns": ["^next", "^react", "^react-dom"],
+      "automerge": true,
+      "automergeType": "branch",
+      "automergeStrategy": "merge",
+      "targetBranch": "renovate",
+      "labels": ["dependencies", "nextjs", "react"]
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchPackagePatterns": ["^eslint", "^typescript"],
+      "groupName": "Dev tools"
+    }
+  ],
+  "prHourlyLimit": 5,
+  "timezone": "Asia/Ho_Chi_Minh"
+}

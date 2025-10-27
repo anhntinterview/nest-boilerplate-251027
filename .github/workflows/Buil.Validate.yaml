@@ -1,0 +1,57 @@
+name: Build.Validate
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "package-lock.json"
+      - "package.json"
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "package-lock.json"
+      - "package.json"
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+jobs:
+  # 1. Lint GitHub Actions / YAML
+  lint-actions:
+    name: Validate.Lint.Actions
+    uses: anhntinterview/nest-boilerplate-251027/.github/workflows/_Validate.Lint.Actions.yaml@ci/setup-workflows
+
+  # 2. Validate PR Title (Conventional Commit)
+  lint-pr:
+    name: Validate.Lint.PR
+    if: ${{ github.event_name == 'pull_request' }}
+    uses: anhntinterview/nest-boilerplate-251027/.github/workflows/_Validate.Lint.PR.yaml@ci/setup-workflows
+
+  # 3. Node Build + Sonar Scan + Docker Build Validation
+  node-build:
+    name: Node.Build.Validate
+    needs: [lint-actions, lint-pr]
+    if: ${{ (github.event_name != 'pull_request' || needs.lint-pr.result == 'success') && needs.lint-actions.result == 'success' }}
+    uses: anhntinterview/nest-boilerplate-251027/.github/workflows/Node.Build.Validate.yaml@ci/setup-workflows
+    with:
+      node_version: 20
+      project_root_directory: "."
+      npmscripts: lint,typecheck,format:check
+      run_sonar_scan: true
+
+  # 4. Jest Tests (E2E)
+  jest:
+    name: Jest.Unit.Test
+    needs: [node-build]
+    if: ${{needs.node-build.result == 'success'}}
+    uses: anhntinterview/nest-boilerplate-251027/.github/workflows/jest.yaml@ci/setup-workflows

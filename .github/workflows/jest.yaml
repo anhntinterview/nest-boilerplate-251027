@@ -1,0 +1,65 @@
+name: Jest Unit Tests
+
+on:
+  workflow_call:
+
+concurrency:
+  group: jest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        shardIndex: [1, 2, 3, 4]
+        shardTotal: [4]
+
+    timeout-minutes: 30
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ✅ Cache npm dependencies
+      - name: Cache npm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      # ✅ Download build artifact (optional — reuse previous build)
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+        continue-on-error: true
+
+      - name: Build the app for Jest
+        run: npm run build:test
+
+      - name: Run Jest tests (shard ${{ matrix.shardIndex }}/${{ matrix.shardTotal }})
+        run: |
+          npx jest --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }} --ci --reporters=default --reporters=jest-junit
+        env:
+          CI_SECRET_API_KEY: ${{ secrets.SECRET_API_KEY }}
+
+      - name: Upload Jest test results (Shard ${{ matrix.shardIndex }})
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jest-results-shard-${{ matrix.shardIndex }}-run-${{ github.run_attempt }}
+          path: jest-results/

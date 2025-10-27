@@ -1,0 +1,55 @@
+name: Auth.GenerateAppToken
+on:
+  workflow_call:
+    secrets:
+      APP_GITHUB_PRIVATE_KEY:
+        required: true
+      APP_GITHUB_INSTALLATION_ID:
+        required: true
+    inputs:
+      APP_GITHUB_ID:
+        required: true
+        type: string
+    outputs:
+      github_app_token:
+        description: "Generated GitHub App installation token"
+        value: ${{ jobs.generate-token.outputs.github_app_token }}
+
+jobs:
+  generate-token:
+    name: Generate GitHub App Token
+    runs-on: ubuntu-latest
+    outputs:
+      github_app_token: ${{ steps.generate.outputs.github_app_token }}
+    steps:
+      - name: Generate GitHub App Token
+        id: generate
+        run: |
+          echo "🔐 Generating GitHub App token..."
+
+          # Create JWT
+          HEADER=$(echo -n '{"alg":"RS256","typ":"JWT"}' | openssl base64 -A | tr '+/' '-_' | tr -d '=')
+          NOW=$(date +%s)
+          EXP=$((NOW + 540)) # 9 minutes
+          PAYLOAD=$(echo -n "{\"iat\":${NOW},\"exp\":${EXP},\"iss\":${{ inputs.APP_GITHUB_ID }}}" | openssl base64 -A | tr '+/' '-_' | tr -d '=')
+
+          JWT="${HEADER}.${PAYLOAD}"
+          SIGNATURE=$(echo -n "$JWT" | openssl dgst -sha256 -sign <(echo "${{ secrets.APP_GITHUB_PRIVATE_KEY }}") | openssl base64 -A | tr '+/' '-_' | tr -d '=')
+          JWT="${JWT}.${SIGNATURE}"
+
+          # Exchange JWT for installation token
+          TOKEN_RESPONSE=$(curl -s -X POST \
+            -H "Authorization: Bearer ${JWT}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/app/installations/${{ secrets.APP_GITHUB_INSTALLATION_ID }}/access_tokens)
+
+          GITHUB_APP_TOKEN=$(echo "$TOKEN_RESPONSE" | jq -r '.token')
+
+          if [ -z "$GITHUB_APP_TOKEN" ] || [ "$GITHUB_APP_TOKEN" == "null" ]; then
+            echo "❌ Failed to generate GitHub App token."
+            echo "$TOKEN_RESPONSE"
+            exit 1
+          fi
+
+          echo "✅ Token generated successfully."
+          echo "github_app_token=$GITHUB_APP_TOKEN" >> "$GITHUB_OUTPUT"
