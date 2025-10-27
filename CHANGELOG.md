@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.2](https://github.com/anhntinterview/nest-boilerplate-251027/compare/v1.1.1...v1.1.2) (2025-10-27)
+
+
+### Bug Fixes
+
+* **ci:** update npm to pnpm ([fd2cb6b](https://github.com/anhntinterview/nest-boilerplate-251027/commit/fd2cb6b68eb7be22f944e6b68f01010dd0d09c2c))
+* **ci:** update npm to pnpm ([fd2cb6b](https://github.com/anhntinterview/nest-boilerplate-251027/commit/fd2cb6b68eb7be22f944e6b68f01010dd0d09c2c))
+
 ## [1.1.1](https://github.com/anhntinterview/nest-boilerplate-251027/compare/v1.1.0...v1.1.1) (2025-10-27)
 
 
