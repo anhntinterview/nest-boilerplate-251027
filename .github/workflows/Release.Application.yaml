@@ -92,7 +92,7 @@ jobs:
       - release
       - build-and-publish-docker
     if: needs.release.outputs.release_created == 'true'
-    uses: anhntinterview/nest-boilerplate-251027/.github/workflows/Create.GitHub.Tag.yaml@ci/setup-workflows
+    uses: ./.github/workflows/Create.GitHub.Tag.yaml
     with:
       major: ${{ needs.release.outputs.major }}
       minor: ${{ needs.release.outputs.minor }}
