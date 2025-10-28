@@ -52,12 +52,22 @@ jobs:
 
       - name: Build Docker image
         run: |
+          CONTAINER_NAME="${{ secrets.CONTAINER_NAME }}"
+          [ -z "$CONTAINER_NAME" ] && CONTAINER_NAME="nest-boilerplate-251027"
+          IMAGE="ghcr.io/${{ github.repository_owner }}/$CONTAINER_NAME:${{ inputs.image_tag }}"
+          echo "🏗️ Building image: $IMAGE"
           docker build \
-              -f ${{inputs.dockerfile_path}} \
-              -t ghcr.io/${{github.repository_owner}}/${{ secrets.CONTAINER_NAME }}:${{inputs.image_tag}} \
-              ${{inputs.image_subdirectory}}
+            -f "${{ inputs.dockerfile_path }}" \
+            -t "$IMAGE" \
+            "${{ inputs.image_subdirectory }}"
 
       - name: Push Docker image to GHCR
-        if: ${{inputs.run_docker_publish == true}}
+        if: ${{ inputs.run_docker_publish == true }}
+        env:
+          CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
+          IMAGE_TAG: ${{ inputs.image_tag }}
         run: |
-          docker push ghcr.io/${{github.repository_owner}}/${{ secrets.CONTAINER_NAME }}:${{inputs.image_tag}}
+          set -e
+          IMAGE="ghcr.io/${{ github.repository_owner }}/${CONTAINER_NAME}:${IMAGE_TAG}"
+          echo "🚀 Pushing image: $IMAGE"
+          docker push "$IMAGE" >/dev/null || true
