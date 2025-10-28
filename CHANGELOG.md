@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.11](https://github.com/anhntinterview/nest-boilerplate-251027/compare/v1.1.10...v1.1.11) (2025-10-28)
+
+
+### Bug Fixes
+
+* **ci:** substitue another build & push docker ([18e035f](https://github.com/anhntinterview/nest-boilerplate-251027/commit/18e035f8b42fa8cf008a1c8de885d31df4bef367))
+* **ci:** update ([9b2f461](https://github.com/anhntinterview/nest-boilerplate-251027/commit/9b2f4616954221047d09da1ddb3e03d4d7b85cad))
+
 ## [1.1.10](https://github.com/anhntinterview/nest-boilerplate-251027/compare/v1.1.9...v1.1.10) (2025-10-28)
 
 
