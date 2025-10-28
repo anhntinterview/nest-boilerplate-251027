@@ -60,9 +60,11 @@ jobs:
           REF="${{ github.event.client_payload.ref }}"
           TAG="${REF#v}"
           echo "🚀 Deploying version: $TAG"
-          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} bash -s "$TAG" "$CONTAINER_NAME" <<'EOF'
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} bash -s "$TAG" "$CONTAINER_NAME" "$APP_PORT" <<'EOF'
             TAG="$1"
             CONTAINER_NAME="$2"
+            APP_PORT="$3"
+
             echo '${{ secrets.NESTJS_RELEASE_PLEASE_TOKEN }}' | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin &&
             set -e
             echo "🛑 Stopping old container (if exists)..."
