@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.1.7](https://github.com/anhntinterview/nest-boilerplate-251027/compare/v1.1.6...v1.1.7) (2025-10-28)
+
+
+### Bug Fixes
+
+* **ci:** replace plain text to $CONTAINER_NAME ([10feb53](https://github.com/anhntinterview/nest-boilerplate-251027/commit/10feb53e6e0f5a85f294609115127183908c6d3b))
+* **ci:** replace plain text to $CONTAINER_NAME ([5d34f6b](https://github.com/anhntinterview/nest-boilerplate-251027/commit/5d34f6b4f4fcb22f3003e2bf484bca1edfc3c650))
+* **ci:** update container name ([7507089](https://github.com/anhntinterview/nest-boilerplate-251027/commit/7507089781a6369173fcbf9cadd4007c1dccbcbd))
+* **ci:** update container name ([7507089](https://github.com/anhntinterview/nest-boilerplate-251027/commit/7507089781a6369173fcbf9cadd4007c1dccbcbd))
+* **ci:** update container name ([23ee811](https://github.com/anhntinterview/nest-boilerplate-251027/commit/23ee811a3ea0c06d0ac00a9587d7a98863eb8974))
+
 ## [1.1.6](https://github.com/anhntinterview/nest-boilerplate-251027/compare/v1.1.5...v1.1.6) (2025-10-28)
 
 
