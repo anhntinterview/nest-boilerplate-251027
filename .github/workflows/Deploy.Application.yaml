@@ -55,6 +55,7 @@ jobs:
       - name: Deploy container
         env:
           CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
+          APP_PORT: ${{ secrets.APP_PORT }}
         run: |
           REF="${{ github.event.client_payload.ref }}"
           TAG="${REF#v}"
@@ -68,13 +69,13 @@ jobs:
             docker stop "$CONTAINER_NAME" 2>/dev/null || true
             docker rm "$CONTAINER_NAME" 2>/dev/null || true
             echo "🛑 Remove old images (if exists)..."
-            docker images | grep $CONTAINER_NAME | awk '{print \$3}' | xargs docker rmi -f >/dev/null 2>&1 || true
+            docker images | grep $CONTAINER_NAME | awk '{print \$3}' | xargs docker rmi -f >/dev/null 2>&1
 
             echo "🚢 Starting new container..."
             docker run -d \
               --name "$CONTAINER_NAME" \
               --restart=always \
-              -p 3000:3000 \
+              -p $APP_PORT:$APP_PORT \
               ghcr.io/${{ github.repository_owner }}/$CONTAINER_NAME:$TAG
 
             echo "🧹 Cleaning up old images..."
