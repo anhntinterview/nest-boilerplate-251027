@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.15](https://github.com/anhntinterview/nest-boilerplate-251027/compare/v1.1.14...v1.1.15) (2025-10-28)
+
+
+### Bug Fixes
+
+* **ci:** missng APP_PORT injection ([3b708db](https://github.com/anhntinterview/nest-boilerplate-251027/commit/3b708db41137b9674adbc068ce2f1d7473eafc45))
+* **ci:** missng APP_PORT injection ([d15e8a9](https://github.com/anhntinterview/nest-boilerplate-251027/commit/d15e8a9cdc76c969962ff7f4902e82c9bb8b021f))
+
 ## [1.1.14](https://github.com/anhntinterview/nest-boilerplate-251027/compare/v1.1.13...v1.1.14) (2025-10-28)
 
 
