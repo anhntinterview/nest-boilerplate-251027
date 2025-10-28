@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.12](https://github.com/anhntinterview/nest-boilerplate-251027/compare/v1.1.11...v1.1.12) (2025-10-28)
+
+
+### Bug Fixes
+
+* **ci:** update backend port ([155f0a6](https://github.com/anhntinterview/nest-boilerplate-251027/commit/155f0a6b0adc480ae60716cd8f5da0fa2c79dbe0))
+* **ci:** update backend port ([1880b6c](https://github.com/anhntinterview/nest-boilerplate-251027/commit/1880b6c9e9b9439c5b39ec4b6a19bc1ea6f30faa))
+
 ## [1.1.11](https://github.com/anhntinterview/nest-boilerplate-251027/compare/v1.1.10...v1.1.11) (2025-10-28)
 
 
