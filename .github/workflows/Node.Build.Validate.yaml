@@ -41,7 +41,6 @@ jobs:
     uses: anhntinterview/nest-boilerplate-251027/.github/workflows/Docker.Build.Publish.yaml@ci/setup_workflows
     with:
       dockerfile_path: ./Dockerfile
-      image_name: nest-boilerplate-251027
       image_tag: v0.1.0
       run_docker_publish: true
       image_subdirectory: .

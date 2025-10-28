@@ -80,7 +80,6 @@ jobs:
     uses: anhntinterview/nest-boilerplate-251027/.github/workflows/Docker.Build.Publish.yaml@ci/setup_workflows
     with:
       dockerfile_path: ./Dockerfile
-      image_name: nest-boilerplate-251027
       image_tag: ${{ needs.release.outputs.docker_tag }}
       run_docker_publish: true
       image_subdirectory: "."

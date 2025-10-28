@@ -38,14 +38,17 @@ jobs:
 
       # ✅ Pull the new Docker image on remote server
       - name: Pull latest Docker image
+        env:
+          CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
         run: |
           REF="${{ github.event.client_payload.ref }}"
           TAG="${REF#v}"
           echo "🔄 Pulling Docker image for version: $TAG"
-          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} bash -s "$TAG" << 'EOF'
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} bash -s "$TAG" "$CONTAINER_NAME" <<'EOF'
             TAG="$1"
+            CONTAINER_NAME="$2"
             echo '${{ secrets.NESTJS_RELEASE_PLEASE_TOKEN }}' | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin &&
-            docker pull ghcr.io/${{ github.repository_owner }}/nest-boilerplate-251027:$TAG
+            docker pull ghcr.io/${{ github.repository_owner }}/$CONTAINER_NAME:$TAG
           EOF
 
       # ✅ Deploy container (stop old, start new)
@@ -64,6 +67,8 @@ jobs:
             echo "🛑 Stopping old container (if exists)..."
             docker stop "$CONTAINER_NAME" 2>/dev/null || true
             docker rm "$CONTAINER_NAME" 2>/dev/null || true
+            echo "🛑 Remove old images (if exists)..."
+            docker images | grep $CONTAINER_NAME | awk '{print \$3}' | xargs docker rmi -f >/dev/null 2>&1 || true
 
             echo "🚢 Starting new container..."
             docker run -d \
