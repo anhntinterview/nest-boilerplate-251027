@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.1.10](https://github.com/anhntinterview/nest-boilerplate-251027/compare/v1.1.9...v1.1.10) (2025-10-28)
+
+
+### Bug Fixes
+
+* **ci:** update inputs ([e077071](https://github.com/anhntinterview/nest-boilerplate-251027/commit/e07707116220a2937866969a76f0bb7c7b61a9da))
+* **ci:** update secrets when using reusable runner ([a250621](https://github.com/anhntinterview/nest-boilerplate-251027/commit/a2506218ad0ad15b0472f239433716b918353147))
+* **ci:** update secrets when using reusable runner ([1adedd2](https://github.com/anhntinterview/nest-boilerplate-251027/commit/1adedd2ab535fb588fb7b0a1e4bf9b3283ea97b2))
+
 ## [1.1.9](https://github.com/anhntinterview/nest-boilerplate-251027/compare/v1.1.8...v1.1.9) (2025-10-28)
 
 
