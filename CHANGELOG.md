@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.9](https://github.com/anhntinterview/nest-boilerplate-251027/compare/v1.1.8...v1.1.9) (2025-10-28)
+
+
+### Bug Fixes
+
+* **ci:** can not use secret variable in shell run: directly ([31266c0](https://github.com/anhntinterview/nest-boilerplate-251027/commit/31266c065a52ad020003003cbb763b181144b2cb))
+* **ci:** can not use secret variable in shell run: directly ([d67db87](https://github.com/anhntinterview/nest-boilerplate-251027/commit/d67db87d90c4e0e5163fd0fea365e08877df291e))
+
 ## [1.1.8](https://github.com/anhntinterview/nest-boilerplate-251027/compare/v1.1.7...v1.1.8) (2025-10-28)
 
 
