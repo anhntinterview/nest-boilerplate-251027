@@ -50,24 +50,27 @@ jobs:
 
       # ✅ Deploy container (stop old, start new)
       - name: Deploy container
+        env:
+          CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
         run: |
           REF="${{ github.event.client_payload.ref }}"
           TAG="${REF#v}"
           echo "🚀 Deploying version: $TAG"
-          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} bash -s "$TAG" << 'EOF'
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} bash -s "$TAG" "$CONTAINER_NAME" << 'EOF'
             TAG="$1"
+            CONTAINER_NAME="$2"
             echo '${{ secrets.NESTJS_RELEASE_PLEASE_TOKEN }}' | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin &&
             set -e
             echo "🛑 Stopping old container (if exists)..."
-            docker stop next-boilerplate-frontend 2>/dev/null || true
-            docker rm next-boilerplate-frontend 2>/dev/null || true
+            docker stop $CONTAINER_NAME 2>/dev/null || true
+            docker rm $CONTAINER_NAME 2>/dev/null || true
 
             echo "🚢 Starting new container..."
             docker run -d \
-              --name next-boilerplate-frontend \
+              --name $CONTAINER_NAME \
               --restart=always \
               -p 3000:3000 \
-              ghcr.io/${{ github.repository_owner }}/nest-boilerplate-251027:$TAG
+              ghcr.io/${{ github.repository_owner }}/$CONTAINER_NAME:$TAG
 
             echo "🧹 Cleaning up old images..."
             docker image prune -f
@@ -77,8 +80,9 @@ jobs:
       - name: Verify deployment
         run: |
           echo "✅ Verifying deployment..."
+          CONTAINER_NAME=${{ secrets.CONTAINER_NAME }}
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
-            docker ps --filter name=next-boilerplate-frontend --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}'
+            docker ps --filter name="$CONTAINER_NAME" --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}'
           "
       - name: Setup Nginx Reverse Proxy (if needed)
         uses: peter-evans/repository-dispatch@v3
