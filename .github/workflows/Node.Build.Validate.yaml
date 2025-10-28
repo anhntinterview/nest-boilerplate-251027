@@ -44,3 +44,5 @@ jobs:
       image_tag: v0.1.0
       run_docker_publish: true
       image_subdirectory: .
+    secrets:
+      CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}

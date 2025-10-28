@@ -83,6 +83,8 @@ jobs:
       image_tag: ${{ needs.release.outputs.docker_tag }}
       run_docker_publish: true
       image_subdirectory: "."
+    secrets:
+      CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
 
   # ✅ Create GitHub tag job (after Docker build)
   create-github-tags:
