@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.14](https://github.com/anhntinterview/nest-boilerplate-251027/compare/v1.1.13...v1.1.14) (2025-10-28)
+
+
+### Bug Fixes
+
+* **ci:** remove all old images, except current $TAG ([cd30a27](https://github.com/anhntinterview/nest-boilerplate-251027/commit/cd30a2715926f3512eb7e66e857ea2caec99c532))
+* **ci:** remove all old images, except current $TAG ([6943652](https://github.com/anhntinterview/nest-boilerplate-251027/commit/6943652593b813a35e7c2b072dc0e3ef134d849c))
+
 ## [1.1.13](https://github.com/anhntinterview/nest-boilerplate-251027/compare/v1.1.12...v1.1.13) (2025-10-28)
 
 
