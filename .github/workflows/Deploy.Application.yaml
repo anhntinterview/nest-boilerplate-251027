@@ -69,7 +69,7 @@ jobs:
             docker stop "$CONTAINER_NAME" 2>/dev/null || true
             docker rm "$CONTAINER_NAME" 2>/dev/null || true
             echo "🛑 Remove old images (if exists)..."
-            docker images | grep $CONTAINER_NAME | awk '{print \$3}' | xargs docker rmi -f >/dev/null 2>&1
+            docker images | grep $CONTAINER_NAME | awk '{print $3}' | xargs docker rmi -f >/dev/null 2>&1
 
             echo "🚢 Starting new container..."
             docker run -d \

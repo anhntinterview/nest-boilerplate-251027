@@ -45,17 +45,6 @@ jobs:
           username: ${{github.actor}}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # - name: Build and push Docker image
-      #   uses: docker/build-push-action@v6
-      #   env:
-      #     CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
-      #     IMAGE_TAG: ${{ inputs.image_tag }}
-      #   with:
-      #     context: ${{ inputs.image_subdirectory }}
-      #     file: ${{ inputs.dockerfile_path }}
-      #     push: ${{ inputs.run_docker_publish }}
-      #     tags: ghcr.io/${{ github.repository_owner }}/$CONTAINER_NAME:${IMAGE_TAG}
-
       - name: Build Docker image
         run: |
           CONTAINER_NAME="${{ secrets.CONTAINER_NAME }}"
