@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.13](https://github.com/anhntinterview/nest-boilerplate-251027/compare/v1.1.12...v1.1.13) (2025-10-28)
+
+
+### Bug Fixes
+
+* **ci:** remove backslash ([ce2b1b9](https://github.com/anhntinterview/nest-boilerplate-251027/commit/ce2b1b92c14dd390d933a5573a7ccf6aea08519e))
+* **ci:** remove backslash ([59dc529](https://github.com/anhntinterview/nest-boilerplate-251027/commit/59dc529768619f5fe7c3ee68d43d8a0bc0c8ec51))
+
 ## [1.1.12](https://github.com/anhntinterview/nest-boilerplate-251027/compare/v1.1.11...v1.1.12) (2025-10-28)
 
 
