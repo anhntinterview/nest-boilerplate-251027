@@ -7,7 +7,7 @@ on:
     paths:
       - "src/**"
       - "tests/**"
-      - "package-lock.json"
+      - "pnpm-lock.yaml"
       - "package.json"
   pull_request:
     branches: [master]
