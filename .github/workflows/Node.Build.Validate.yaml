@@ -19,6 +19,8 @@ on:
         required: false
       SONAR_HOST_URL:
         required: false
+      CONTAINER_NAME:
+        required: false
 permissions:
   contents: read
   packages: write
