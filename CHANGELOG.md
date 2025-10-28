@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.1.5](https://github.com/anhntinterview/nest-boilerplate-251027/compare/v1.1.4...v1.1.5) (2025-10-28)
+
+
+### Bug Fixes
+
+* **ci:** update permission token ([3d2608f](https://github.com/anhntinterview/nest-boilerplate-251027/commit/3d2608ff010b4648f682665898a38c782a42e7bc))
+* **ci:** update permission token: secrets.NESTJS_RELEASE_PLEASE_TOKEN ([3d2608f](https://github.com/anhntinterview/nest-boilerplate-251027/commit/3d2608ff010b4648f682665898a38c782a42e7bc))
+* **ci:** update permission token: secrets.NESTJS_RELEASE_PLEASE_TOKEN ([8b6cc9f](https://github.com/anhntinterview/nest-boilerplate-251027/commit/8b6cc9f7d1ab4ce50a0263b07a6799055b509a96))
+
 ## [1.1.4](https://github.com/anhntinterview/nest-boilerplate-251027/compare/v1.1.3...v1.1.4) (2025-10-28)
 
 
