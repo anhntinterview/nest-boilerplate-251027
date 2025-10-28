@@ -44,7 +44,7 @@ jobs:
           echo "🔄 Pulling Docker image for version: $TAG"
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} bash -s "$TAG" << 'EOF'
             TAG="$1"
-            echo '${{ secrets.GHCR_TOKEN }}' | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin &&
+            echo '${{ secrets.NESTJS_RELEASE_PLEASE_TOKEN }}' | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin &&
             docker pull ghcr.io/${{ github.repository_owner }}/nest-boilerplate-251027:$TAG
           EOF
 
