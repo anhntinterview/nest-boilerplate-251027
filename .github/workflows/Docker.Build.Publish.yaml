@@ -7,9 +7,6 @@ on:
         required: false
         default: ./Dockerfile
         type: string
-      image_name:
-        required: true
-        type: string
       image_tag:
         required: false
         default: latest
@@ -51,16 +48,16 @@ jobs:
           context: ${{ inputs.image_subdirectory }}
           file: ${{ inputs.dockerfile_path }}
           push: ${{ inputs.run_docker_publish }}
-          tags: ghcr.io/${{ github.repository_owner }}/${{ inputs.image_name }}:${{ inputs.image_tag }}
+          tags: ghcr.io/${{ github.repository_owner }}/${{ secrets.CONTAINER_NAME }}:${{ inputs.image_tag }}
 
       # - name: Build Docker image
       #   run: |
       #       docker build \
       #           -f ${{inputs.dockerfile_path}} \
-      #           -t ghcr.io/${{github.repository_owner}}/${{inputs.image_name}}:${{inputs.image_tag}} \
+      #           -t ghcr.io/${{github.repository_owner}}/${{ secrets.CONTAINER_NAME }}:${{inputs.image_tag}} \
       #           ${{inputs.image_subdirectory}}
 
       # - name: Push Docker image to GHCR
       #   if: ${{inputs.run_docker_publish == true}}
       #   run: |
-      #       docker push ghcr.io/${{github.repository_owner}}/${{inputs.image_name}}:${{inputs.image_tag}}
+      #       docker push ghcr.io/${{github.repository_owner}}/${{ secrets.CONTAINER_NAME }}:${{inputs.image_tag}}
