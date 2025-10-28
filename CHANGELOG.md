@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.1.4](https://github.com/anhntinterview/nest-boilerplate-251027/compare/v1.1.3...v1.1.4) (2025-10-28)
+
+
+### Bug Fixes
+
+* **ci:** keep fixing Dockerfile ([5be116d](https://github.com/anhntinterview/nest-boilerplate-251027/commit/5be116d530d0abdf97681c3e28ab718dc2a02093))
+* **ci:** keep fixing Dockerfile ([5be116d](https://github.com/anhntinterview/nest-boilerplate-251027/commit/5be116d530d0abdf97681c3e28ab718dc2a02093))
+* **ci:** keep fixing Dockerfile ([ecdafbe](https://github.com/anhntinterview/nest-boilerplate-251027/commit/ecdafbe97e0e7a17757100c26bf5317a4d22a043))
+
 ## [1.1.3](https://github.com/anhntinterview/nest-boilerplate-251027/compare/v1.1.2...v1.1.3) (2025-10-28)
 
 
