@@ -45,35 +45,35 @@ jobs:
           username: ${{github.actor}}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v6
-        env:
-          CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
-          IMAGE_TAG: ${{ inputs.image_tag }}
-        with:
-          context: ${{ inputs.image_subdirectory }}
-          file: ${{ inputs.dockerfile_path }}
-          push: ${{ inputs.run_docker_publish }}
-          tags: ghcr.io/${{ github.repository_owner }}/$CONTAINER_NAME:${IMAGE_TAG}
-
-      # - name: Build Docker image
-      #   run: |
-      #     CONTAINER_NAME="${{ secrets.CONTAINER_NAME }}"
-      #     [ -z "$CONTAINER_NAME" ] && CONTAINER_NAME="nest-boilerplate-251027"
-      #     IMAGE="ghcr.io/${{ github.repository_owner }}/$CONTAINER_NAME:${{ inputs.image_tag }}"
-      #     echo "🏗️ Building image: $IMAGE"
-      #     docker build \
-      #       -f "${{ inputs.dockerfile_path }}" \
-      #       -t "$IMAGE" \
-      #       "${{ inputs.image_subdirectory }}"
-
-      # - name: Push Docker image to GHCR
-      #   if: ${{ inputs.run_docker_publish == true }}
+      # - name: Build and push Docker image
+      #   uses: docker/build-push-action@v6
       #   env:
       #     CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
       #     IMAGE_TAG: ${{ inputs.image_tag }}
-      #   run: |
-      #     set -e
-      #     IMAGE="ghcr.io/${{ github.repository_owner }}/${CONTAINER_NAME}:${IMAGE_TAG}"
-      #     echo "🚀 Pushing image: $IMAGE"
-      #     docker push "$IMAGE" >/dev/null
+      #   with:
+      #     context: ${{ inputs.image_subdirectory }}
+      #     file: ${{ inputs.dockerfile_path }}
+      #     push: ${{ inputs.run_docker_publish }}
+      #     tags: ghcr.io/${{ github.repository_owner }}/$CONTAINER_NAME:${IMAGE_TAG}
+
+      - name: Build Docker image
+        run: |
+          CONTAINER_NAME="${{ secrets.CONTAINER_NAME }}"
+          [ -z "$CONTAINER_NAME" ] && CONTAINER_NAME="nest-boilerplate-251027"
+          IMAGE="ghcr.io/${{ github.repository_owner }}/$CONTAINER_NAME:${{ inputs.image_tag }}"
+          echo "🏗️ Building image: $IMAGE"
+          docker build \
+            -f "${{ inputs.dockerfile_path }}" \
+            -t "$IMAGE" \
+            "${{ inputs.image_subdirectory }}"
+
+      - name: Push Docker image to GHCR
+        if: ${{ inputs.run_docker_publish == true }}
+        env:
+          CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
+          IMAGE_TAG: ${{ inputs.image_tag }}
+        run: |
+          set -e
+          IMAGE="ghcr.io/${{ github.repository_owner }}/${CONTAINER_NAME}:${IMAGE_TAG}"
+          echo "🚀 Pushing image: $IMAGE"
+          docker push "$IMAGE" >/dev/null
