@@ -1,17 +1,18 @@
 # Base image (LTS + alpine)
-FROM node:20-alpine as base
+FROM node:20-alpine AS base
 
 # Dependencies stage
 FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Install pnpm
-RUN npm install -g pnpm
+# Enable corepack (ensures pnpm version consistency)
+RUN corepack enable
 
-COPY package.json package-lock.json* ./
+# Copy only the lockfile and package manifest
+COPY package.json pnpm-lock.yaml* ./
 
-# Install dependencies. Corresponding with: RUN npm ci
+# Install dependencies with pnpm. Corresponding with: RUN npm ci
 RUN pnpm install --frozen-lockfile
 
 # Build stage
@@ -30,16 +31,16 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Create system group is named "backend", with GID = 1001
+# Create system group is named "backend", with GID = 1002
 # Create system user is named "nextjs", with UID = 1002,
-# This "nextjs" user is belong to "nodejs" group
+# This "nextjs" user is belong to "backend" group
 RUN addgroup --system --gid 1002 backend \
     && adduser --system --uid 1002 nestjs
 
 # Copy only build output and node_modules needed for production
-COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
-COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=nestjs:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=nestjs:backend /app/dist ./dist
+COPY --from=builder --chown=nestjs:backend /app/node_modules ./node_modules
+COPY --from=builder --chown=nestjs:backend /app/package.json ./package.json
 
 #Switch to user non-root
 USER nestjs
