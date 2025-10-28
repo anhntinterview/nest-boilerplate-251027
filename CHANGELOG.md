@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.1.6](https://github.com/anhntinterview/nest-boilerplate-251027/compare/v1.1.5...v1.1.6) (2025-10-28)
+
+
+### Bug Fixes
+
+* **ci:** update to run test at PR ([92b7050](https://github.com/anhntinterview/nest-boilerplate-251027/commit/92b7050f07092e26119b927893ba473ed4c4f1a9))
+* **ci:** using here doc instead of plain text ([04b48ef](https://github.com/anhntinterview/nest-boilerplate-251027/commit/04b48ef1194c90eb1ef0262515d15be6d6778812))
+* **ci:** using here doc instead of plain text ([04b48ef](https://github.com/anhntinterview/nest-boilerplate-251027/commit/04b48ef1194c90eb1ef0262515d15be6d6778812))
+* **ci:** using here doc instead of plain text ([ae4d961](https://github.com/anhntinterview/nest-boilerplate-251027/commit/ae4d961c0f7cf1509bc5e42e1578825b0be61457))
+* **ci:** using secret instead of string plain text ([5f279a2](https://github.com/anhntinterview/nest-boilerplate-251027/commit/5f279a2d5d3363a2ebcf2c894f42a93f9fb1ab5a))
+* **ci:** using secret instead of string plain text ([5f279a2](https://github.com/anhntinterview/nest-boilerplate-251027/commit/5f279a2d5d3363a2ebcf2c894f42a93f9fb1ab5a))
+* **ci:** using secret instead of string plain text ([100176f](https://github.com/anhntinterview/nest-boilerplate-251027/commit/100176f3c13c409a64a6bf839ca96b9fcfbd84e5))
+
 ## [1.1.5](https://github.com/anhntinterview/nest-boilerplate-251027/compare/v1.1.4...v1.1.5) (2025-10-28)
 
 
