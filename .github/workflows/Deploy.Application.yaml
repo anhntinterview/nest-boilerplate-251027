@@ -62,12 +62,12 @@ jobs:
             echo '${{ secrets.NESTJS_RELEASE_PLEASE_TOKEN }}' | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin &&
             set -e
             echo "🛑 Stopping old container (if exists)..."
-            docker stop $CONTAINER_NAME 2>/dev/null || true
-            docker rm $CONTAINER_NAME 2>/dev/null || true
+            docker stop "$CONTAINER_NAME" 2>/dev/null || true
+            docker rm "$CONTAINER_NAME" 2>/dev/null || true
 
             echo "🚢 Starting new container..."
             docker run -d \
-              --name $CONTAINER_NAME \
+              --name "$CONTAINER_NAME" \
               --restart=always \
               -p 3000:3000 \
               ghcr.io/${{ github.repository_owner }}/$CONTAINER_NAME:$TAG
