@@ -48,7 +48,6 @@ jobs:
       - name: Build Docker image
         run: |
           CONTAINER_NAME="${{ secrets.CONTAINER_NAME }}"
-          [ -z "$CONTAINER_NAME" ] && CONTAINER_NAME="nest-boilerplate-251027"
           IMAGE="ghcr.io/${{ github.repository_owner }}/$CONTAINER_NAME:${{ inputs.image_tag }}"
           echo "🏗️ Building image: $IMAGE"
           docker build \

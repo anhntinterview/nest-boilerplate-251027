@@ -2,21 +2,6 @@ name: Setup.Nginx.Proxy
 
 on:
   workflow_dispatch:
-    inputs:
-      application_name:
-        description: "Application name"
-        required: true
-      env:
-        description: ".env"
-        required: true
-        type: choice
-        options: [dev, stage, prod]
-      region:
-        description: "Region"
-        default: "eu-west-1"
-      version:
-        description: "Version"
-        required: true
   repository_dispatch:
     types: [setup-nginx]
 

@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+  app:
+    container_name: ${CONTAINER_NAME}
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/${CONTAINER_NAME}:${IMAGE_TAG}
+    restart: always
+    ports:
+      - "${APP_PORT}:${APP_PORT}"
+    env_file: .env.production
+    depends_on:
+      - redis
+    networks:
+      - app_network
+
+  redis:
+    container_name: redis-prod
+    image: redis:7
+    restart: always
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    volumes:
+      - redis_data_prod:/data
+    networks:
+      - app_network
+
+volumes:
+  redis_data_prod:
+
+networks:
+  app_network:
+    driver: bridge

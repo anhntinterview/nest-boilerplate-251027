@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../generator/mongo"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGO_DATABASE_URL")
+}
+
+model Log {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  message   String
+  createdAt DateTime @default(now())
+
+  @@map("Log")
+}
+
+model ProductMetadata {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  productId  String   @unique  // @unique is trgger generate index
+  category   String?
+  tags       String[]
+  attributes Json?
+  images     String[]
+  stockInfo  Json?
+  extra      Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("ProductMetadata")
+  @@index([category])  // Generate index for category
+}
