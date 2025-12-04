@@ -8,7 +8,9 @@ import { UpdateProductHandler } from './application/commands/handlers/update-pro
 import { DeleteProductHandler } from './application/commands/handlers/delete-product.handler';
 import { GetProductHandler } from './application/queries/handlers/get-product.handler';
 import { SearchProductHandler } from './application/queries/handlers/search-product.handler';
-import { RedisService } from './adapters/redis.service';
+import { RedisService } from './application/services/redis.service';
+import { ProductSyncService } from './application/services/product-sync.service';
+import { ProductResolver } from './graphql/product.resolver';
 
 const CommandHandlers = [
   CreateProductHandler,
@@ -22,12 +24,18 @@ const QueryHandlers = [GetProductHandler, SearchProductHandler];
   imports: [CqrsModule],
   controllers: [ProductController],
   providers: [
+    ProductResolver,
     PrismaProductRepository,
     PrismaProductReadRepository,
+    ProductSyncService,
     RedisService,
     ...CommandHandlers,
     ...QueryHandlers,
   ],
-  exports: [PrismaProductRepository, PrismaProductRepository],
+  exports: [
+    PrismaProductRepository,
+    PrismaProductRepository,
+    ProductSyncService,
+  ],
 })
 export class ProductModule {}

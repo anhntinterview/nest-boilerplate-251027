@@ -1,5 +1,5 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { PrismaClient } from '../../../generator/mongo';
+import { PrismaClient } from '@prisma/mongo';
 
 @Injectable()
 export class MongoService
@@ -15,7 +15,7 @@ export class MongoService
   async onModuleInit(): Promise<void> {
     console.log('🟢 Connecting to MongoSQL...');
     await this.$connect();
-    console.log('✅ Connected to MongoSQL (admin)');
+    console.log('✅ Connected to MongoSQL (mongo-ssre-ecommerce)');
   }
 
   async onModuleDestroy(): Promise<void> {

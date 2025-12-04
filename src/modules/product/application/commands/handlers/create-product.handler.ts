@@ -8,11 +8,15 @@ import {
 } from 'src/modules/product/domain/product.entity';
 import { buildProductMetadataFromProduct } from 'src/modules/product/mappers/product-to-metadat.mapper';
 import { ProductCreatedEvent } from '../../events/impl/product-created.event';
+import { ProductMetadataDoc } from 'src/modules/product/domain/read-models/product-metadata.entity';
+import { Logger } from '@nestjs/common';
 
 @CommandHandler(CreateProductCommand)
 export class CreateProductHandler
   implements ICommandHandler<CreateProductCommand>
 {
+  private readonly logger = new Logger(CreateProductHandler.name);
+
   constructor(
     private readonly productRepo: PrismaProductRepository,
     private readonly productReadRepo: PrismaProductReadRepository,
@@ -21,22 +25,51 @@ export class CreateProductHandler
 
   async execute(command: CreateProductCommand) {
     const { dto, userId } = command;
+
+    this.logger.log(`➕ Creating product: ${dto.name}`);
+
+    // 1️⃣ Create domain entity
     const product = Product.create({
       ...dto,
       createdById: userId,
+      createdAt: new Date().toISOString(),
     } as ProductProps);
 
+    // 2️⃣ Save to Postgres
     const created = await this.productRepo.create(product);
+    this.logger.log(`✅ Product created in Postgres: ${created.id}`);
 
-    const metadata = buildProductMetadataFromProduct(created, {
-      category: dto.category,
-      tags: dto.tag,
-    });
+    // 3️⃣ Create metadata in MongoDB
+    try {
+      const metadata: ProductMetadataDoc = buildProductMetadataFromProduct(
+        created,
+        {
+          category: dto.category,
+          tags: dto.tag,
+        },
+      );
 
-    await this.productReadRepo.upsertMetadata(metadata);
+      // Add timestamps
+      metadata.createdAt = new Date();
+      metadata.updatedAt = new Date();
 
-    // Emit event
+      // Upsert and get metadataId
+      const metadataId =
+        await this.productReadRepo.upsertMetadataReturningId(metadata);
+      this.logger.log(`✅ Metadata created in MongoDB: ${metadataId}`);
+
+      // 4️⃣ Update product with metadataId
+      created.applyMetadataId(metadataId);
+      await this.productRepo.update(created);
+      this.logger.log(`✅ Product updated with metadataId: ${metadataId}`);
+    } catch (error) {
+      this.logger.error('❌ Failed to create metadata:', error);
+      // Don't fail the whole operation if metadata creation fails
+    }
+
+    // 5️⃣ Emit event
     this.eventBus.publish(new ProductCreatedEvent(created.id));
+    this.logger.log(`📢 ProductCreatedEvent published: ${created.id}`);
 
     return created.toDTO();
   }

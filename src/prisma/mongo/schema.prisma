@@ -1,6 +1,12 @@
+// src/prisma/mongo/schema.prisma
 generator client {
   provider = "prisma-client-js"
-  output   = "../../generator/mongo"
+  output   = "../../../node_modules/.prisma/mongo"
+}
+
+generator nestgraphql {
+  provider = "node node_modules/prisma-nestjs-graphql"
+  output   = "./@generated/mongo/graphql"
 }
 
 datasource db {
@@ -18,7 +24,7 @@ model Log {
 
 model ProductMetadata {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  productId  String   @unique // @unique is trgger generate index
+  productId  String   @unique  // @unique is trgger generate index
   category   String?
   tags       String[]
   attributes Json?
@@ -28,6 +34,6 @@ model ProductMetadata {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  @@index([category]) // Generate index for category
   @@map("ProductMetadata")
+  @@index([category])  // Generate index for category
 }

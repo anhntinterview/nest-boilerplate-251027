@@ -14,6 +14,43 @@ export class PrismaProductRepository implements ProductRepository {
     });
   }
 
+  async findProductsWithoutMetadata(): Promise<Product[]> {
+    const rows = await this.prisma.product.findMany({
+      where: { metadataId: null },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        price: true,
+        salePrice: true,
+        sku: true,
+        expiredAt: true,
+        importedAt: true,
+        createdById: true,
+        metadataId: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    return rows.map((p) =>
+      Product.create({
+        id: p.id,
+        name: p.name,
+        description: p.description ?? undefined,
+        price: p.price !== null ? Number(p.price) : undefined,
+        salePrice: p.salePrice !== null ? Number(p.salePrice) : undefined,
+        sku: p.sku ?? undefined,
+        expiredAt: p.expiredAt?.toISOString() ?? undefined,
+        importedAt: p.importedAt?.toISOString() ?? undefined,
+        createdById: p.createdById ?? undefined,
+        metadataId: p.metadataId ?? undefined,
+        createdAt: p.createdAt.toISOString(),
+        updatedAt: p.updatedAt?.toISOString(),
+      }),
+    );
+  }
+
   async findAll(): Promise<Product[]> {
     const rawProduct = await this.prisma.product.findMany();
     return rawProduct.map((p) =>
@@ -133,6 +170,7 @@ export class PrismaProductRepository implements ProductRepository {
    * Find by id, returns domain Product or null.
    */
   async findById(id: string): Promise<Product | null> {
+    console.log(`id: `, id);
     const found = await this.prisma.product.findUnique({
       where: { id },
       select: {
@@ -162,8 +200,8 @@ export class PrismaProductRepository implements ProductRepository {
       importedAt: found.importedAt ? found.importedAt.toISOString() : undefined,
       createdById: found.createdById ?? undefined,
       metadataId: found.metadataId ?? undefined,
-      createdAt: found.createdAt ? found.updatedAt.toISOString() : undefined,
-      updatedAt: found.updatedAt ? found.updatedAt.toISOString() : undefined,
+      createdAt: found.createdAt.toISOString(),
+      updatedAt: found.updatedAt?.toISOString(),
     });
   }
 

@@ -2,7 +2,7 @@ import { Product } from '../domain/product.entity';
 import { ProductMetadataDoc } from '../domain/read-models/product-metadata.entity';
 
 interface BuildExtras {
-  category?: string;
+  category?: string | null;
   tags?: string[];
   images?: string[];
   stockInfo?: Record<string, unknown>;
@@ -22,7 +22,7 @@ export function buildProductMetadataFromProduct(
 ): ProductMetadataDoc {
   const { category, tags, images, stockInfo } = extras;
 
-  // rest is persisted to only extras
+  // rest extras
   const rest: Record<string, unknown> = {};
   Object.entries(extras).forEach(([key, value]) => {
     if (!RESERVED_EXTRAS_KEYS.includes(key as any)) {

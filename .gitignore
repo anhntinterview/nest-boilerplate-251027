@@ -57,3 +57,8 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 docker-compose.dev.yml
 init-db
+
+src/prisma/seed.ts
+src/prisma/mongo/@generated
+src/prisma/postgres/@generated
+src/graphql/schema.gql

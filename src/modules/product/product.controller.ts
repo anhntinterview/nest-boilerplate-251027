@@ -33,6 +33,24 @@ export class ProductController {
     return this.commandBus.execute(new CreateProductCommand(dto));
   }
 
+  @Get()
+  async search(
+    @Query() query: SearchProductDto,
+  ): Promise<{ items: ProductMetadataDoc[]; nextCursors?: string }> {
+    return this.queryBus.execute(
+      new SearchProductQuery({
+        ...query,
+        sortBy: toSortBy(query.sortBy),
+      }),
+    );
+  }
+
+  @Get(':id')
+  async getById(@Param('id') id: string): Promise<ProductResponseDto> {
+    console.log('Get started in product by ID');
+    return this.queryBus.execute(new GetProductQuery(id));
+  }
+
   @Put(':id')
   async update(
     @Param('id') id: string,
@@ -44,22 +62,5 @@ export class ProductController {
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<{ success: boolean }> {
     return this.commandBus.execute(new DeleteProductCommand(id));
-  }
-
-  @Get(':id')
-  async getById(@Param('id') id: string): Promise<ProductResponseDto> {
-    return this.queryBus.execute(new GetProductQuery(id));
-  }
-
-  @Get()
-  async search(
-    @Query() query: SearchProductDto,
-  ): Promise<{ items: ProductMetadataDoc[]; nextCursors?: string }> {
-    return this.queryBus.execute(
-      new SearchProductQuery({
-        ...query,
-        sortBy: toSortBy(query.sortBy),
-      }),
-    );
   }
 }

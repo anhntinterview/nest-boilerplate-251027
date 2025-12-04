@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "module": "commonjs",
+    "moduleResolution": "node",
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
@@ -10,6 +11,11 @@
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"],
+      "@prisma/postgres": ["node_modules/.prisma/postgres"],
+      "@prisma/mongo": ["node_modules/.prisma/mongo"]
+    },
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": true,

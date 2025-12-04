@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import { createClient, RedisClientType } from 'redis';
 import { ProductModule } from './modules/product/product.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { GraphQLModule } from './graphql/graphql.module';
 
 @Global()
 @Module({
@@ -12,6 +13,7 @@ import { PrismaModule } from './prisma/prisma.module';
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
     ProductModule,
+    GraphQLModule,
   ],
   controllers: [AppController],
   providers: [

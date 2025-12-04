@@ -28,6 +28,16 @@ export interface ProductRepository {
    * Efficient batch read by ids (single query)
    */
   batchFindByIds(ids: string[]): Promise<Product[]>;
+
+  /**
+   * Update metadataId field in product
+   */
+  updateMetadataId(productId: string, metadataId: string): Promise<void>;
+
+  /**
+   * Find all products without metadata
+   */
+  findProductsWithoutMetadata(): Promise<Product[]>;
 }
 
 /**
@@ -41,6 +51,11 @@ export interface ProductReadRepository {
   upsertMetadata(doc: ProductMetadataDoc): Promise<void>;
 
   /**
+   * Upsert metadata and return the MongoDB document id
+   */
+  upsertMetadataReturningId(doc: ProductMetadataDoc): Promise<string>;
+
+  /**
    * Find metadata by productId
    */
   findMetadataByProductId(
@@ -48,11 +63,19 @@ export interface ProductReadRepository {
   ): Promise<ProductMetadataDoc | null>;
 
   /**
+   * Delete metadata by id
+   */
+  deleteMetadata(id: string): Promise<void>;
+
+  /**
+   * Delete metadata by productId
+   */
+  deleteMetadataByProductId(productId: string): Promise<void>;
+
+  /**
    * Search / query the read-model using the provided filters.
    * Implementation should support cursor-based pagination and return
    * nextCursor when available.
-   *
-   * filter shape is intentinally `unknown` for flexibility (define stricter type if desire)
    */
   search(filters: ProductSearchFilters): Promise<{
     items: ProductMetadataDoc[];

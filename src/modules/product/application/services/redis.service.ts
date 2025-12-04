@@ -1,14 +1,9 @@
-import {
-  Inject,
-  Injectable,
-  // OnModuleDestroy,
-  Logger,
-} from '@nestjs/common';
+import { Inject, Injectable, OnModuleDestroy, Logger } from '@nestjs/common';
 import { RedisClientType } from 'redis';
 
 @Injectable()
-// export class RedisService implements OnModuleDestroy {
-export class RedisService {
+export class RedisService implements OnModuleDestroy {
+  // export class RedisService {
   private readonly logger = new Logger(RedisService.name);
 
   constructor(
@@ -37,9 +32,9 @@ export class RedisService {
     await this.client.del(key);
   }
 
-  // async onModuleDestroy() {
-  //   await this.client.disconnect();
-  // }
+  async onModuleDestroy() {
+    await this.client.disconnect();
+  }
 
   /**
    * DEBUG UTILITY

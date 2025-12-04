@@ -1,7 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { ProductReadRepository } from '../ports/product.repository.interface';
 import { MongoService } from 'src/prisma/mongo/mongo.service';
-import { ProductMetadataDoc } from '../domain/read-models/product-metadata.entity';
+import {
+  AggregationResult,
+  isMongoDateObject,
+  ProductMetadataDoc,
+  RawMongoMetadata,
+} from '../domain/read-models/product-metadata.entity';
 import { ObjectId } from 'mongodb';
 import {
   MongoMatch,
@@ -15,28 +20,160 @@ import { Prisma } from '@prisma/client';
 export class PrismaProductReadRepository implements ProductReadRepository {
   constructor(private readonly mongo: MongoService) {}
 
-  async upsertMetadata(doc: ProductMetadataDoc): Promise<void> {
-    await this.mongo.productMetadata.upsert({
+  /**
+   * Helper: Normalize MongoDB object to plain JavaScript object
+   * Handles MongoDB-specific types like ObjectId and $date
+   */
+  private normalizeMongoDoc(item: RawMongoMetadata): ProductMetadataDoc {
+    // Handle _id conversion
+    let normalizedId: string | undefined;
+    if (item._id) {
+      if (typeof item._id === 'string') {
+        normalizedId = item._id;
+      } else if (typeof item._id === 'object' && 'toString' in item._id) {
+        normalizedId = item._id.toString();
+      }
+    } else if (item.id) {
+      normalizedId = item.id;
+    }
+
+    // Handle createdAt conversion
+    let normalizedCreatedAt: Date | undefined;
+    if (isMongoDateObject(item.createdAt)) {
+      normalizedCreatedAt = new Date(item.createdAt.$date);
+    } else if (item.createdAt instanceof Date) {
+      normalizedCreatedAt = item.createdAt;
+    } else if (typeof item.createdAt === 'string') {
+      normalizedCreatedAt = new Date(item.createdAt);
+    }
+
+    // Handle updatedAt conversion
+    let normalizedUpdatedAt: Date | undefined;
+    if (isMongoDateObject(item.updatedAt)) {
+      normalizedUpdatedAt = new Date(item.updatedAt.$date);
+    } else if (item.updatedAt instanceof Date) {
+      normalizedUpdatedAt = item.updatedAt;
+    } else if (typeof item.updatedAt === 'string') {
+      normalizedUpdatedAt = new Date(item.updatedAt);
+    }
+
+    // Handle JSON values
+    const normalizeJsonValue = (
+      value: Prisma.JsonValue | null | undefined,
+    ): Record<string, unknown> => {
+      if (!value) return {};
+      if (typeof value === 'object' && !Array.isArray(value)) {
+        return value as Record<string, unknown>;
+      }
+      return {};
+    };
+
+    return {
+      _id: normalizedId,
+      productId: item.productId,
+      category: item.category ?? null,
+      tags: item.tags ?? [],
+      attributes: normalizeJsonValue(item.attributes),
+      images: item.images ?? [],
+      stockInfo: normalizeJsonValue(item.stockInfo),
+      extra: normalizeJsonValue(item.extra),
+      createdAt: normalizedCreatedAt,
+      updatedAt: normalizedUpdatedAt,
+    };
+  }
+
+  /**
+   * Private: upsert và return Mongo _id
+   */
+  private async upsertAndReturnId(doc: ProductMetadataDoc): Promise<string> {
+    const existing = await this.mongo.productMetadata.findFirst({
       where: { productId: doc.productId },
-      create: {
+    });
+
+    if (existing) {
+      await this.mongo.productMetadata.update({
+        where: { id: existing.id },
+        data: {
+          category: doc.category,
+          tags: doc.tags,
+          attributes: doc.attributes as Prisma.InputJsonValue,
+          images: doc.images,
+          stockInfo: doc.stockInfo as Prisma.InputJsonValue,
+          extra: doc.extra as Prisma.InputJsonValue,
+          updatedAt: new Date(),
+        },
+      });
+      return existing.id;
+    }
+
+    const created = await this.mongo.productMetadata.create({
+      data: {
         productId: doc.productId,
-        category: doc.category ?? null,
-        tags: doc.tags ?? [],
-        attributes: (doc.attributes ?? {}) as Prisma.InputJsonValue,
-        images: doc.images ?? [],
-        stockInfo: (doc.stockInfo ?? {}) as Prisma.InputJsonValue,
-        extra: (doc.extra ?? {}) as Prisma.InputJsonValue,
-      },
-      update: {
-        category: doc.category ?? null,
-        tags: doc.tags ?? [],
-        attributes: (doc.attributes ?? {}) as Prisma.InputJsonValue,
-        images: doc.images ?? [],
-        stockInfo: (doc.stockInfo ?? {}) as Prisma.InputJsonValue,
-        extra: (doc.extra ?? {}) as Prisma.InputJsonValue,
-        updatedAt: new Date(),
+        category: doc.category,
+        tags: doc.tags,
+        attributes: doc.attributes as Prisma.InputJsonValue,
+        images: doc.images,
+        stockInfo: doc.stockInfo as Prisma.InputJsonValue,
+        extra: doc.extra as Prisma.InputJsonValue,
       },
     });
+
+    return created.id;
+  }
+
+  /**
+   * Interface requirement: nothing is returned
+   */
+  async upsertMetadata(doc: ProductMetadataDoc): Promise<void> {
+    await this.upsertAndReturnId(doc);
+  }
+
+  /**
+   * API is spend to use syncMissingMetadata(): upsert + return id
+   */
+  async upsertMetadataReturningId(doc: ProductMetadataDoc): Promise<string> {
+    return this.upsertAndReturnId(doc);
+  }
+
+  /**
+   * Delete metadata by id
+   */
+  async deleteMetadata(id: string): Promise<void> {
+    try {
+      await this.mongo.productMetadata.delete({
+        where: { id },
+      });
+    } catch (error) {
+      console.error('Failed to delete metadata:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete metadata by productId (alternative method)
+   */
+  async deleteMetadataByProductId(productId: string): Promise<void> {
+    try {
+      console.log('🗑️ Attempting to delete metadata for productId:', productId);
+
+      const metadata = await this.mongo.productMetadata.findFirst({
+        where: { productId },
+      });
+
+      if (!metadata) {
+        console.log('ℹ️ No metadata found for productId:', productId);
+        return;
+      }
+
+      await this.mongo.productMetadata.delete({
+        where: { id: metadata.id },
+      });
+
+      console.log('✅ Metadata deleted successfully for productId:', productId);
+    } catch (error) {
+      console.error('❌ Failed to delete metadata by productId:', error);
+      throw error;
+    }
   }
 
   async findMetadataByProductId(
@@ -46,13 +183,8 @@ export class PrismaProductReadRepository implements ProductReadRepository {
       where: { productId },
     });
 
-    if (!res) return null;
-    return {
-      ...res,
-      attributes: (res.attributes ?? {}) as Record<string, unknown>,
-      stockInfo: (res.stockInfo ?? {}) as Record<string, unknown>,
-      extra: (res.extra ?? {}) as Record<string, unknown>,
-    };
+    // ✅ Use normalizer to handle MongoDB types
+    return this.normalizeMongoDoc(res as RawMongoMetadata);
   }
 
   async search(filters: ProductSearchFilters): Promise<{
@@ -61,10 +193,10 @@ export class PrismaProductReadRepository implements ProductReadRepository {
     total?: number;
   }> {
     /**
-     * 1️⃣ Nhận filters từ client
-     * Lấy các tham số tìm kiếm từ filters (ví dụ: từ query string).
-     * Nếu client không gửi limit, mặc định 20.
-     * sortBy và order để sắp xếp kết quả.
+     * 1️⃣ receive filters from client
+     * Get the parameters to find for filters.
+     * if client did not send limit, the default limit is 20.
+     * sortBy & order to arrange result.
      */
     const {
       search,
@@ -207,16 +339,20 @@ export class PrismaProductReadRepository implements ProductReadRepository {
      * pivotValue dùng để so sánh với trường sắp xếp (sortBy).
      * pivotId đảm bảo thứ tự ổn định nếu pivotValue trùng nhau.
      */
-    const items =
-      (res as unknown as { cursor?: { firstBatch?: ProductMetadataDoc[] } })
-        .cursor?.firstBatch ?? [];
+    const rawItems =
+      (res as unknown as AggregationResult).cursor?.firstBatch ?? [];
+
+    // ✅ Normalize all MongoDB objects
+    const items: ProductMetadataDoc[] = rawItems.map((item) =>
+      this.normalizeMongoDoc(item),
+    );
 
     let nextCursor: string | undefined;
     if (items.length > limit) {
       const nextItem = items[limit];
       items.splice(limit, items.length - limit);
 
-      // Safe extract pivotValue
+      // Extract pivot value for cursor
       const pivotValue =
         (nextItem.attributes &&
           typeof nextItem.attributes === 'object' &&
